@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pandas
+requests
+scikit-learn
+shap
+celery
+redis
+pytest
+sqlalchemy
+psycopg2-binary

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cubs Betting Analytics App Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        button {
+            margin: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        #status {
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cubs Betting Analytics App Control</h1>
+        <button id="startApp">Start App</button>
+        <button id="stopApp">Stop App</button>
+        <div id="status"></div>
+    </div>
+    <script>
+        const startButton = document.getElementById('startApp');
+        const stopButton = document.getElementById('stopApp');
+        const statusDiv = document.getElementById('status');
+
+        startButton.addEventListener('click', () => controlApp('start'));
+        stopButton.addEventListener('click', () => controlApp('stop'));
+
+        async function controlApp(action) {
+            try {
+                const response = await fetch(`/api/control/${action}`, { method: 'POST' });
+                const data = await response.json();
+                statusDiv.textContent = data.message;
+            } catch (error) {
+                statusDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

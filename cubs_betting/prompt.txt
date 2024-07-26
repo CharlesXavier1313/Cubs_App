@@ -1,0 +1,429 @@
+Cubs Betting Analytics Web App: Comprehensive Project Plan (Local Deployment)
+Phase 1: Data Collection and Storage
+1.1 Set up Local Data Storage Infrastructure
+
+Use PostgreSQL 14.5 as the database system
+Install PostgreSQL on your Mac using Homebrew: brew install postgresql@14
+Create a new database: createdb cubs_betting_db
+Design database schema with the following tables:
+
+players (id, name, position, team, etc.)
+games (id, date, home_team, away_team, score, etc.)
+player_stats (game_id, player_id, at_bats, hits, runs, etc.)
+betting_odds (game_id, bookmaker, odds_type, odds_value, etc.)
+model_predictions (game_id, model_type, prediction, confidence, etc.)
+
+
+Implement daily automated backups to a local directory:
+
+Create a backup script: backup_database.sh
+Schedule it using cron: 0 1 * * * /path/to/backup_database.sh
+
+
+Set up SSL for local PostgreSQL connection
+
+1.2 Collect Cubs Players and Game Statistics
+
+Use the MLB Stats API (https://statsapi.mlb.com/) as the primary data source
+Develop Python scripts using the requests library to fetch data:
+
+fetch_player_stats.py: Retrieves player statistics
+fetch_game_stats.py: Retrieves game statistics
+
+
+Use pandas for data manipulation before database insertion
+Implement error handling with exponential backoff for API rate limiting
+Use logging module to log all data fetching activities
+Set up a local cron job to run these scripts daily at 4:00 AM:
+
+Edit crontab: crontab -e
+Add: 0 4 * * * /usr/bin/python3 /path/to/fetch_data.py
+
+
+
+1.3 Collect Vegas Odds Data
+
+Use The Odds API (https://the-odds-api.com/) for current and historical odds data
+Develop Python script fetch_odds_data.py to retrieve odds
+Store odds from multiple bookmakers (e.g., DraftKings, FanDuel, BetMGM)
+Implement a local WebSocket server for simulating real-time odds updates
+Set up a local cron job to fetch historical odds daily at 1:00 AM
+Use Celery with Redis for scheduling real-time odds fetching every 5 minutes:
+
+Install Redis: brew install redis
+Start Redis server: brew services start redis
+
+
+
+Phase 2: Data Analysis and Model Development
+2.1 Exploratory Data Analysis
+
+Install Jupyter Lab: pip install jupyterlab
+Create the following notebooks:
+
+player_performance_analysis.ipynb
+game_outcome_analysis.ipynb
+odds_correlation_study.ipynb
+
+
+Use matplotlib and seaborn for data visualization
+Generate at least 15 insightful visualizations, including:
+
+Player performance trends over time
+Home vs. away performance differentials
+Correlation between odds movement and game outcomes
+
+
+
+2.2 Feature Engineering
+
+Create a feature_engineering.py module with the following functions:
+
+calculate_rolling_averages(data, window_sizes=[7, 14, 30])
+generate_matchup_statistics(batter_stats, pitcher_stats)
+encode_weather_conditions(weather_data)
+
+
+Implement advanced features:
+
+Player fatigue index based on recent game frequency
+Team momentum score using weighted recent performance
+Pitching rotation impact factor
+
+
+
+2.3 Model Development
+
+Use scikit-learn for model implementation: pip install scikit-learn
+Develop separate models for:
+
+Moneyline bets
+Over/Under bets
+Run line bets
+
+
+For each bet type, train the following models:
+
+Random Forest (RandomForestClassifier)
+Gradient Boosting (GradientBoostingClassifier)
+XGBoost (XGBClassifier)
+
+
+Use GridSearchCV for hyperparameter tuning
+Implement k-fold cross-validation with k=5
+Use SHAP (SHapley Additive exPlanations) for model interpretability
+Create model_trainer.py to orchestrate the model training process
+
+2.4 Betting Score Development
+
+Define "good bet" criteria:
+
+Positive expected value over the last 30, 60, and 90 days
+Consistent profitability across different bookmakers
+
+
+Develop betting_score_calculator.py with the following functions:
+
+calculate_expected_value(odds, win_probability)
+compute_historical_accuracy(predictions, outcomes)
+generate_betting_score(expected_value, historical_accuracy, model_confidence)
+
+
+Normalize betting scores on a scale of 0-100
+Implement dynamic thresholds for "good bet" classification based on user risk preference
+
+Phase 3: Backend Development
+3.1 API Development
+
+Use FastAPI framework for API development: pip install fastapi
+Set up the following endpoints:
+
+GET /api/v1/odds/{game_id}: Retrieve current game odds
+GET /api/v1/betting-scores/{game_id}: Fetch betting scores
+GET /api/v1/historical-data/{date_range}: Access historical data
+POST /api/v1/custom-analysis: Perform custom bet analysis
+
+
+Implement request rate limiting using fastapi-limiter
+Use JWT for API authentication
+Document API using Swagger UI
+
+3.2 Model Integration
+
+Develop model_service.py to handle model predictions
+Use joblib to load trained models into memory
+Implement local caching using Redis:
+
+Install Redis: brew install redis
+Start Redis server: brew services start redis
+
+
+Create a PredictionManager class to coordinate predictions from multiple models
+
+3.3 Data Processing Pipeline
+
+Use Apache Airflow for local ETL pipeline management:
+
+Install Airflow: pip install apache-airflow
+Initialize Airflow database: airflow db init
+
+
+Create DAGs for the following processes:
+
+daily_data_update: Fetches and processes new game data
+model_retraining: Retrains models weekly with new data
+odds_ingestion: Continuously ingests and processes new odds data
+
+
+Implement Airflow sensors to check for data availability before processing
+Use Airflow's email operator to send notifications to your local email client
+
+Phase 4: Frontend Development
+4.1 Web App Design
+
+Use Figma to create detailed wireframes and mockups
+Design a responsive layout with breakpoints at 480px, 768px, and 1024px
+Use Material Design color system with primary color #0E3386 (Cubs blue)
+Create a design-system.md document detailing typography, spacing, and component styles
+
+4.2 Frontend Framework Setup
+
+Use React 18 with TypeScript for frontend development
+Set up project using Create React App with TypeScript template:
+npx create-react-app cubs-betting-frontend --template typescript
+Use Redux Toolkit for state management: npm install @reduxjs/toolkit react-redux
+Implement Redux Thunk for handling asynchronous actions
+
+4.3 Interactive Visualizations
+
+Use D3.js for custom, interactive visualizations: npm install d3 @types/d3
+Develop the following visualization components:
+
+OddsTimeline.tsx: Shows odds movement over time
+BettingScoreGauge.tsx: Displays betting score with color-coded sectors
+WinProbabilityChart.tsx: Visualizes win probability distribution
+FeatureImportanceBar.tsx: Shows SHAP values for model features
+
+
+Implement zoom and pan functionality for time-based charts
+Use react-tooltip for informative hover tooltips on all charts
+
+4.4 Betting Calculators
+
+Create BettingCalculator.tsx component with the following features:
+
+Input fields for stake amount and odds
+Real-time calculation of potential payout
+Visual representation of risk/reward ratio
+
+
+Implement ParleyCalculator.tsx for calculating multi-bet payouts
+Develop KellyCalculator.tsx to suggest optimal bet sizes based on the Kelly Criterion
+
+4.5 User Interface Development
+
+Use Material-UI (MUI) component library for consistent styling: npm install @mui/material @emotion/react @emotion/styled
+Implement a responsive app shell with AppBar and Drawer components
+Create a dashboard layout using MUI's Grid system
+Develop custom hooks for data fetching and real-time updates:
+
+useOddsData: Fetches and updates odds data
+useBettingScores: Retrieves current betting scores
+
+
+Implement virtual scrolling for long lists using react-window
+
+Phase 5: Integration and Testing
+5.1 Frontend-Backend Integration
+
+Use Axios for API requests from the frontend: npm install axios
+Implement a custom apiClient with interceptors for handling authentication and errors
+Use React Query for server state management and caching: npm install react-query
+Implement optimistic updates for better user experience
+
+5.2 Testing
+
+Achieve minimum 80% code coverage for both frontend and backend
+Backend testing:
+
+Use pytest for unit and integration tests: pip install pytest
+Implement API tests using FastAPI's TestClient
+
+
+Frontend testing:
+
+Use Jest and React Testing Library (included with Create React App)
+Implement Cypress for end-to-end testing: npm install cypress --save-dev
+
+
+Create the following Cypress test suites:
+
+odds_display_spec.js: Tests odds display and updates
+betting_calculator_spec.js: Validates calculator functionality
+user_flow_spec.js: Tests critical user journeys
+
+
+Set up a local CI process using GitHub Actions for your local repository
+
+5.3 Performance Optimization
+
+Use EXPLAIN ANALYZE to identify and optimize slow PostgreSQL queries
+Implement query caching using PgBouncer for local setup:
+
+Install PgBouncer: brew install pgbouncer
+Configure PgBouncer to run locally
+
+
+Use React.lazy and Suspense for code-splitting
+Optimize images using next-gen formats (WebP) and lazy loading
+Implement service workers for offline capabilities and faster load times
+Use Lighthouse in Chrome DevTools to monitor performance metrics locally
+
+Phase 6: Local Deployment and Launch
+6.1 Local Development Environment Setup
+
+Use Docker Desktop for Mac (latest stable version) for containerization:
+
+Install from https://www.docker.com/products/docker-desktop
+
+
+Install Homebrew package manager on your Mac:
+
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+
+Set up local domain:
+
+Edit /etc/hosts file to add: 127.0.0.1 cubs-betting.local
+
+
+Install Nginx using Homebrew: brew install nginx
+Configure Nginx as a reverse proxy:
+
+Create a new configuration file: /usr/local/etc/nginx/servers/cubs-betting.conf
+Set up proxy pass to direct traffic to your Docker containers
+
+
+Use mkcert for local SSL:
+
+Install mkcert: brew install mkcert
+Set up local CA: mkcert -install
+Generate certificate: mkcert cubs-betting.local
+
+
+
+6.2 Container Orchestration
+
+Use Docker Compose for managing multi-container setup
+Create a docker-compose.yml file with services for:
+
+Frontend (React app)
+Backend (FastAPI)
+Database (PostgreSQL)
+Cache (Redis)
+Nginx (Reverse Proxy)
+
+
+Set up volume mounts for persistent data storage on your Mac
+Configure environment variables in a .env file for sensitive information
+
+6.3 Local Database Setup
+
+Use PostgreSQL 14.5 container for the database
+Set up a Docker volume for persistent database storage:
+
+docker volume create cubs-betting-db-data
+
+
+Use pgAdmin container for database management (optional):
+
+Add to docker-compose.yml
+
+
+Implement regular backups to a local directory on your Mac:
+
+Create a backup script and schedule with cron
+
+
+
+6.4 Continuous Integration for Local Development
+
+Use GitLab CI/CD with GitLab Runner installed on your Mac
+Create .gitlab-ci.yml for automated testing and building
+Set up local GitLab Runner:
+
+Install: brew install gitlab-runner
+Register runner with your GitLab project
+
+
+Configure CI pipeline to build Docker images and run tests locally
+
+6.5 Local Launch Preparation
+
+Conduct load testing using Apache JMeter on your local setup:
+
+Install JMeter: brew install jmeter
+
+
+Create a shell script start-app.sh to automate the startup process:
+
+Start Docker containers
+Run database migrations
+Start Nginx reverse proxy
+
+
+Implement a local logging solution:
+
+Use docker logs for container logs
+Set up log rotation to manage disk space
+
+
+
+6.6 Go-Live (Local)
+
+Run start-app.sh to launch the application
+Access the application at https://cubs-betting.local in your browser
+Implement a local monitoring solution:
+
+Use Prometheus and Grafana containers for monitoring
+Set up alerting to your email for critical issues
+
+
+Create stop-app.sh and restart-app.sh scripts for easy management
+
+Phase 7: Maintenance and Iteration (Local Setup)
+7.1 User Feedback Collection
+
+Implement a local analytics solution using Plausible Analytics:
+
+Set up Plausible Analytics container in docker-compose.yml
+
+
+Set up a dedicated feedback email address for user comments
+Create a feedback form within the app using Typeform embed
+
+7.2 Ongoing Maintenance
+
+Schedule monthly security audits:
+
+Use OWASP ZAP for automated security testing
+
+
+Implement automated daily database health checks:
+
+Create a script to check database connections, query performance, and data integrity
+
+
+Set up local security scanning:
+
+Install and configure Trivy: brew install aquasecurity/trivy/trivy
+
+
+Conduct quarterly backup and restore drills
+
+7.3 Feature Iteration
+
+Use Trello or a local Kanban board for roadmap planning and feature prioritization
+Implement a bi-weekly sprint cycle for development
+Conduct monthly retrospectives to improve development processes
+Use feature branches and pull requests for all new development in your local Git repository
